@@ -3,7 +3,7 @@ output "vm_worker_ip" {
   value       = module.vm_worker.*.public_ip
 }
 
-output "vm_master_ip" {
+output "vm_manager_ip" {
   description = "Public Ipv4 address of master server"
-  value       = module.vm_master.public_ip
+  value       = module.vm_manager.public_ip
 }

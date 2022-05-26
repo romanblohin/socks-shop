@@ -7,3 +7,8 @@ variable "instancename" {
   description = "Instance name"
   type        = string
 }
+
+variable "instance_hostname" {
+  description = "Instance hostname"
+  type        = string
+}

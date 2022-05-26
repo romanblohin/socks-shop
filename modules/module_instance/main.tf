@@ -14,12 +14,14 @@ data "yandex_compute_image" "image" {
 
 resource "yandex_compute_instance" "default" {
   name        = var.instancename
+  hostname    = var.instance_hostname
   platform_id = "standard-v1"
   zone        = "ru-central1-a"
 
   resources {
     cores  = 2
     memory = 2
+    core_fraction = 20
   }
 
   boot_disk {

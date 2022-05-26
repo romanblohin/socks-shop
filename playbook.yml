@@ -1,0 +1,57 @@
+---
+- name: Installing Docker
+  hosts: all
+  become: yes
+
+  roles:
+    - docker
+
+  tasks:
+
+    - block:
+
+        - name: Installing Docker-compose
+          apt: update_cache=yes name=docker-compose state=latest
+
+        - name: Docker Swarm init
+          docker_swarm:
+            state: present
+
+        - name: Get the worker join-token
+          shell: docker swarm join-token --quiet worker
+          register: worker_token
+
+      when: inventory_hostname in groups['manager_servers']
+
+    - block:
+
+        - name: Add nodes
+          docker_swarm:
+            state: join
+            advertise_addr: "{{ ansible_default_ipv4.address }}"
+            join_token: "{{ hostvars['vm_manager']['worker_token']['stdout'] }}"
+            remote_addrs: [ "{{ hostvars['vm_manager']['ansible_default_ipv4']['address'] }}:2377" ]
+
+      when: inventory_hostname in groups['worker_servers']
+
+- name: Deploy sockshop
+  hosts: manager_servers
+  become: yes
+  tags: deploy
+
+  tasks:
+
+    - pip:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - jsondiff
+        - pyyaml
+
+    - copy: src=docker-compose.yml dest=docker-compose.yml
+
+    - name: Deploy stack from a compose file
+      docker_stack:
+        state: present
+        name: sockshop-swarm
+        compose: docker-compose.yml

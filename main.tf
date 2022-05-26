@@ -14,17 +14,19 @@ provider "yandex" {
   zone      = "ru-central1-a"
 }
 
-module "vm_master" {
-  source          = "./modules/module_instance"
-  instancename    = "vmmaster"
-  subn_id         = yandex_vpc_subnet.foo.id
+module "vm_manager" {
+  source            = "./modules/module_instance"
+  instancename      = "vmmanager"
+  instance_hostname = "manager"
+  subn_id           = yandex_vpc_subnet.foo.id
 }
 
 module "vm_worker" {
-  count           = 2
-  source          = "./modules/module_instance"
-  instancename    = "vmworker${count.index + 1}"
-  subn_id         = yandex_vpc_subnet.foo.id
+  count             = 2
+  source            = "./modules/module_instance"
+  instancename      = "vmworker-${count.index + 1}"
+  instance_hostname = "worker-${count.index + 1}"
+  subn_id           = yandex_vpc_subnet.foo.id
 }
 
 # Creating VPC and Subnets for Instances
@@ -45,7 +47,7 @@ data "template_file" "ansible_inventory" {
   vars = {
     vm_worker1 = module.vm_worker.0.public_ip
     vm_worker2 = module.vm_worker.1.public_ip
-    vm_master  = module.vm_master.public_ip
+    vm_manager  = module.vm_manager.public_ip
   }
 
 }
